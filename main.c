@@ -16,6 +16,21 @@ typedef struct			node_list
 	struct node_list	*next;
 }						t_node;
 
+int			ft_strcmp(const char *s1, const char *s2)
+{
+	int		i;
+
+	i = 0;
+	while (s1[i] == s2[i] && s1[i] != '\0')
+		i++;
+	return ((unsigned char)s1[i] - (unsigned char)s2[i]);
+}
+
+int				ft_strequ(char const *s1, char const *s2)
+{
+	return (!ft_strcmp(s1, s2));
+}
+
 int						node_len(t_node *node)
 {
 	int					len;
@@ -304,15 +319,38 @@ char					*str_to_b(char *s)
 	return (dest);
 }
 
+char					*decode(char *buffer, t_tree *tree)
+{
+	char				*dest;
+	t_tree				*current;
+
+	dest = "";
+	current = tree;
+	while (*buffer)
+	{
+		if (*buffer == '1')
+			current = current->right;
+		else if (*buffer == '0')
+			current = current->left;
+		if (current->left == NULL && current->right == NULL)
+		{
+			dest = ft_strjoin(dest, current->data);
+			current = tree;
+		}
+		buffer++;
+	}
+	return (dest);
+}
+
 int						main(void)
 {
 	char				*compression;
 	char				*set;
+	char				*tr;
 
-	set = str_to_h("aaabbabbabacccacadddcccdccabab");
-	dprintf(1, "set = %s\n", set);
+	set = str_to_h("guillaume");
 	t_tree *tree = get_tree(set, &compression);
-	dprintf(1, "compression: %s\n", compression);
-	dprintf(1, "originale: %s\n", str_to_b(set));
+	tr = decode(compression, tree);
+	dprintf(1, "control return ok = %d\n", ft_strequ(tr, set));
 	return (0);
 }
