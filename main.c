@@ -85,13 +85,13 @@ int						get_freq(char c, char *text)
 	return (freq);
 }
 
-t_node					*push_node(t_node *node, char *s, int freq)
+t_node					*push_node(t_node *node, char *s, int freq, t_tree *left, t_tree *right)
 {
 	t_node				*current;
 	t_tree				*tree;
 
 	current = node;
-	tree = branch(s, freq, NULL, NULL);
+	tree = branch(s, freq, left, right);
 	while (current->next != NULL)
 		current = current->next;
 	current->next = new_node(tree);
@@ -130,7 +130,7 @@ t_node					*get_node(char *text)
 		{
 			save[j] = text[i];
 			s[0] = text[i];
-			node = push_node(node, s, get_freq(text[i], text));
+			node = push_node(node, s, get_freq(text[i], text), NULL, NULL);
 			j++;
 		}
 		i++;	
@@ -169,33 +169,70 @@ t_node					*node_reduce(t_node *node)
 	while (current != NULL)
 	{
 		if (strcmp(current->tree->data, min1->tree->data) && strcmp(current->tree->data, min2->tree->data))
-			new = push_node(new, current->tree->data, current->tree->frequency);
+			new = push_node(new, current->tree->data, current->tree->frequency, current->tree->left, current->tree->right);
 		current = current->next;
 	}
-	new = push_node(new, ft_strjoin(min2->tree->data, min1->tree->data), min2->tree->frequency + min1->tree->frequency);
+	new = push_node(new, ft_strjoin(min2->tree->data, min1->tree->data), min2->tree->frequency + min1->tree->frequency, min2->tree, min1->tree);
 	new = new->next;
 	return (new);
 }
 
-t_tree					*get_tree(char *text, int *list)
+char					*get_path(char *s, t_tree *tree)
+{
+	t_tree				*current;
+	char				*path;
+
+	current = tree;
+	path = "";
+	while (current->left != NULL && current->right != NULL)
+	{
+		if (strchr(current->left->data, *s) != NULL)
+		{
+			current = current->left;
+			path = ft_strjoin(path, "0");
+		}
+		else if (strchr(current->right->data, *s) != NULL)
+		{
+			current = current->right;
+			path = ft_strjoin(path, "1");
+		}
+		else
+		{
+			dprintf(1, "%s\n", "Error on path");
+			return (0);
+		}
+	}
+	return (path);
+}
+
+t_tree					*get_tree(char *text, char **compression)
 {
 	t_node				*node;
 	t_tree				*tree;
-	int					*array;
 
 	node = get_node(text);
-	array = (int *)malloc(sizeof(int) * node_len(node) + 1);
+	print_node(node);
+	*compression = "";
 	while (node_len(node) != 1)
 		node = node_reduce(node);
 	tree = node->tree;
+	while (*text)
+	{
+		*compression = ft_strjoin(*compression, get_path(text, tree));
+		text++;
+	}
 	return (tree);
 }
 
-
 int						main(void)
 {
-	int					*i;
+	char				*compression;
 
-	t_tree *tree = get_tree("cacdacbbbacbc", i);
+	t_tree *tree = get_tree("aaabbabbabacccacadddcccdccabab", &compression);
+	dprintf(1, "a = %s\n", get_path("a", tree));
+	dprintf(1, "b = %s\n", get_path("b", tree));
+	dprintf(1, "c = %s\n", get_path("c", tree));
+	dprintf(1, "d = %s\n", get_path("d", tree));
+	dprintf(1, "compression: %s\n", compression);
 	return (0);
 }
