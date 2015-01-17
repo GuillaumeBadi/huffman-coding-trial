@@ -31,6 +31,56 @@ int						node_len(t_node *node)
 	return (len);
 }
 
+char			*ft_strjoinc(char *s, char c, size_t len)
+{
+	char		*d;
+
+	d = (char *)malloc(sizeof(char) * len + 2);
+	strcpy(d, s);
+	d[len] = c;
+	d[len + 1] = '\0';
+	return (d);
+}
+
+char			*ft_strrev(char const *s)
+{
+	char		*str;
+	int			len;
+	int			i;
+
+	i = 0;
+	len = strlen(s);
+	str = (char *)malloc(sizeof(char) * len + 1);
+	while (len)
+		str[i++] = s[--len];
+	str[i] = '\0';
+	return (str);
+}
+
+char		*base(unsigned long int number, char *str, char *set, int b)
+{
+	int			r;
+
+	if (!number && !str)
+		return ("0");
+	if (!str)
+	{
+		if ((str = (char *)malloc(sizeof(char) * 2)) == NULL)
+		{
+			//wtf cette ligne
+			str[0] = 'a';
+			return (NULL);
+		}
+	}
+	if (!number)
+		return (ft_strrev(str));
+	else
+	{
+		r = number % (unsigned long int)b;
+		return (base(number / (unsigned long int)b, ft_strjoinc(str, set[r], strlen(str)), set, b));
+	}
+}
+
 char					*ft_strjoin(char *s1, char *s2)
 {
 	char				*s;
@@ -224,15 +274,45 @@ t_tree					*get_tree(char *text, char **compression)
 	return (tree);
 }
 
+char					*str_to_h(char *s)
+{
+	char				*dest;
+	int					i;
+
+	dest = "";
+	i = 0;
+	while (s[i])
+	{
+		dest = ft_strjoin(dest, base(s[i], NULL, "0123456789abcdef", 16));
+		i++;
+	}
+	return (dest);
+}
+
+char					*str_to_b(char *s)
+{
+	char				*dest;
+	int					i;
+
+	dest = "";
+	i = 0;
+	while (s[i])
+	{
+		dest = ft_strjoin(dest, base(s[i], NULL, "01", 2));
+		i++;
+	}
+	return (dest);
+}
+
 int						main(void)
 {
 	char				*compression;
+	char				*set;
 
-	t_tree *tree = get_tree("aaabbabbabacccacadddcccdccabab", &compression);
-	dprintf(1, "a = %s\n", get_path("a", tree));
-	dprintf(1, "b = %s\n", get_path("b", tree));
-	dprintf(1, "c = %s\n", get_path("c", tree));
-	dprintf(1, "d = %s\n", get_path("d", tree));
+	set = str_to_h("aaabbabbabacccacadddcccdccabab");
+	dprintf(1, "set = %s\n", set);
+	t_tree *tree = get_tree(set, &compression);
 	dprintf(1, "compression: %s\n", compression);
+	dprintf(1, "originale: %s\n", str_to_b(set));
 	return (0);
 }
